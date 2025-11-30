@@ -2,9 +2,10 @@ name: xiaomi_r3p
 on:
   schedule:
     - cron: 1 16 * * 5
-  #push:
-  #  branches: 
-  #    - master
+  workflow_dispatch:
+  push:
+    branches: 
+      - master
 
 jobs:
   build:
