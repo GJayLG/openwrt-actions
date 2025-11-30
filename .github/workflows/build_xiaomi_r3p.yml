@@ -106,10 +106,10 @@ jobs:
           mv -f openwrt/bin/packages ./artifact/
           
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: OpenWrt firmware
-        path: ./artifact/
+       name: OpenWrt firmware
+       path: ./artifact/
     
     - name: Create Release and upload assets
       id: release-asset
