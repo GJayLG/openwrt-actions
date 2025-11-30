@@ -1,4 +1,7 @@
 name: xiaomi_r3p
+        cd openwrt
+        rm -f . config
+        cp ../xiaomi_r3p . config
           
     - name: Make Defconfig
       run: |
@@ -26,13 +29,13 @@ name: xiaomi_r3p
           
     - name: Get current date
       id: currentdate
-      run: echo "date=$(date +'%Y-%m-%d.%H.%M')" >> $GITHUB_OUTPUT
+      run: echo "date=$(date +'%Y-%m-%d. %H. %M')" >> $GITHUB_OUTPUT
       
     - name: Assemble artifact
       run: |
         rm -rf ./artifact/
         mkdir -p ./artifact/
-        find openwrt/bin/targets/ -name "*sysupgrade*bin*" | xargs -i mv -f {} ./artifact/${{ steps.currentdate. outputs.date }}. bin
+        find openwrt/bin/targets/ -name "*sysupgrade*bin*" | xargs -i mv -f {} ./artifact/${{ steps.currentdate.outputs.date }}.bin
         mv -f openwrt/bin/packages ./artifact/
           
     - name: Upload artifact
@@ -46,10 +49,10 @@ name: xiaomi_r3p
       uses: ncipollo/release-action@v1
       with:
         tag: "XiaoMiR3P_${{ steps.currentdate.outputs.date }}"
-        name: "XiaoMi_3Pro_${{ steps. currentdate.outputs. date }}"
+        name: "XiaoMi_3Pro_${{ steps.currentdate.outputs.date }}"
         makeLatest: true
         generateReleaseNotes: true
-        artifacts: "./artifact/*.bin,./artifact/**/*.ipk"
+        artifacts: "./artifact/*.bin,./artifact/**/*. ipk"
         body: |
           ## Release Notes 
           - This release includes the firmware for XiaoMi R3P router.
@@ -64,7 +67,7 @@ name: xiaomi_r3p
         host: ${{ secrets.ssh_host }}
         username: ${{ secrets.ssh_user }}
         password: ${{ secrets. ssh_pass }}
-        port: ${{ secrets.ssh_port }}
+        port: ${{ secrets. ssh_port }}
         script: |
-          curl -4 -o /tmp/${{ steps. currentdate.outputs. date }}.bin -L https://github. com/GJayLG/openwrt-actions/releases/download/XiaoMiR3P_${{ steps.currentdate.outputs.date }}/${{ steps.currentdate.outputs.date }}.bin
+          curl -4 -o /tmp/${{ steps.currentdate.outputs. date }}.bin -L https://github. com/GJayLG/openwrt-actions/releases/download/XiaoMiR3P_${{ steps.currentdate.outputs.date }}/${{ steps.currentdate.outputs.date }}.bin
           nohup sysupgrade -v /tmp/${{ steps. currentdate.outputs. date }}.bin>/dev/null 2>&1 &
