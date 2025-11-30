@@ -35,7 +35,7 @@ jobs:
     
     - name: Clone source code
       env: 
-        REPO_URL: https://github.com/coolsnowwolf/lede. git
+        REPO_URL: https://github. com/coolsnowwolf/lede. git
         REPO_BRANCH: master
       run: git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
     
@@ -124,7 +124,7 @@ jobs:
             ./artifact/**/*.ipk
     
     - name: executing remote ssh commands using ssh key
-      if: secrets.ssh_host != ''
+      if: ${{ secrets.ssh_host }}
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.ssh_host }}
