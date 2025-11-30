@@ -1,12 +1,68 @@
 name: xiaomi_r3p
-        REPO_URL: https://github. com/coolsnowwolf/lede.git
+on:
+  schedule:
+    - cron: '1 16 * * 5'
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: true
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        swap-storage: true
+
+    - name: Space cleanup and Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        docker system prune -af || true
+        docker image prune -af || true
+        docker container prune -f || true
+        sudo rm -rf /usr/local/lib/android || true
+        sudo rm -rf /opt/ghc || true
+        sudo rm -rf /usr/share/dotnet || true
+        sudo rm -rf /usr/local/share/boost || true
+        sudo rm -rf /opt/hostedtoolcache || true
+        rm -rf "$GITHUB_WORKSPACE"/. git || true
+        rm -rf "$RUNNER_TEMP"/* || true
+        sudo -E apt-mark hold grub-efi-amd64-signed
+        sudo -E apt update
+        sudo -E apt -y purge mysql-server mysql-server-8.0 mysql-client mysql-client-8. 0 mysql-common 2>/dev/null || true
+        sudo -E apt -y purge azure-cli ghc zulu llvm firefox google-cloud-sdk dotnet powershell php mongodb snap snapd 2>/dev/null || true
+        sudo -E apt -y full-upgrade
+        sudo -E apt -y install ack antlr3 aria2 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex gawk gettext gcc-multilib g++-multilib git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libreadline-dev libssl-dev libtool lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip libpython3-dev qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
+        sudo -E systemctl daemon-reload
+        sudo -E apt -y autoremove --purge
+        sudo -E apt clean
+        sudo -E timedatectl set-timezone "Asia/Shanghai"
+
+    - name: Checkout OpenWrt
+      uses: actions/checkout@v4
+
+    - name: Clone source code
+      env:
+        REPO_URL: https://github.com/coolsnowwolf/lede.git
         REPO_BRANCH: master
       run: git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
 
     - name: Add new feed from lienol
       run: |
-        cd openwrt/package/lean && rm -rf luci-theme-argon && git clone -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git luci-theme-argon
-        cd ../..  && rm -f feeds. conf.default && cp ../feeds.conf.default feeds.conf.default
+          cd openwrt/package/lean && rm -rf luci-theme-argon && git clone -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git luci-theme-argon
+          cd ../.. && rm -f feeds.conf.default && cp ../feeds.conf.default feeds.conf.default
+          mkdir -p files/usr/share/v2ray && cd files/usr/share/v2ray && wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat && wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
+          
 
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
@@ -53,10 +109,11 @@ name: xiaomi_r3p
 
     - name: Assemble artifact
       run: |
-        rm -rf ./artifact/
-        mkdir -p ./artifact/
-        find openwrt/bin/targets/ -name "*sysupgrade*bin*" | xargs -i mv -f {} ./artifact/${{ steps.currentdate. outputs.date }}. bin
-        mv -f openwrt/bin/packages ./artifact/
+          rm -rf ./artifact/
+          mkdir -p ./artifact/
+          find openwrt/bin/targets/ -name "*sysupgrade*bin*" | xargs -i mv -f {} ./artifact/${{ steps.currentdate.outputs.date }}.bin
+          find openwrt/bin/targets/ -name "*.bin*" | xargs -i mv -f {} ./artifact/
+          mv -f openwrt/bin/packages ./artifact/
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
